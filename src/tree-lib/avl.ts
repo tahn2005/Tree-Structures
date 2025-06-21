@@ -68,22 +68,26 @@ export class AVLTree<K, V> extends BinarySearchTree<K, V> {
     }
     if(onStep) await onStep({ type: "found", key });
 
-    // Capture parent BEFORE any operations
-    const parent = node.parent as AVLNode<K, V> | null;
-
+    // Handle the case where node has both children
     if (node.left !== null && node.right !== null) {
       const pred = this.predecessor(node) as AVLNode<K,V>;
       if(onStep) await onStep({ type: "swap", key1: node.key, key2: pred.key});
       this.nodeSwap(node, pred);
     }
 
+    // Now node has at most one child
     if(onStep) await onStep({type: 'remove', key: node.key});
+    
+    // Get the parent BEFORE deletion
+    const parent = node.parent as AVLNode<K, V> | null;
+    
     if (node.left === null && node.right === null) {
       this.noChild(node);
     } else {
       this.oneChild(node);
     }
 
+    // Call removeFix on the parent of the deleted node
     await this.removeFix(parent, onStep);
   }
 
@@ -126,6 +130,7 @@ export class AVLTree<K, V> extends BinarySearchTree<K, V> {
       return;
     }
     
+    // Check if rebalancing is needed
     if (Math.abs(this.sub(n.left as AVLNode<K,V>) - this.sub(n.right as AVLNode<K,V>)) > 1) {
       const p = n.parent as AVLNode<K, V> | null;
       
@@ -142,6 +147,7 @@ export class AVLTree<K, V> extends BinarySearchTree<K, V> {
       } else if (this.sub(c.left as AVLNode<K, V>) < this.sub(c.right as AVLNode<K, V>)) {
         g = c.right as AVLNode<K, V>;
       } else { 
+        // If heights are equal, choose based on which child c is
         if (c === n.left) {
           g = c.left as AVLNode<K, V>;
         } else {
@@ -149,6 +155,7 @@ export class AVLTree<K, V> extends BinarySearchTree<K, V> {
         }
       }
 
+      // Perform rotations based on the imbalance
       if (g === c.left) {
         if (c === n.left) { 
           await this.rightRotate(n, onStep);
@@ -164,17 +171,19 @@ export class AVLTree<K, V> extends BinarySearchTree<K, V> {
           await this.rightRotate(n, onStep);
         }
       }
+      
+      // Continue fixing up the tree
       await this.removeFix(p, onStep);
       return;
     }
 
+    // Update height and continue up the tree if height changed
     const oldHeight = n.height;
     n.height = Math.max(this.sub(n.left as AVLNode<K,V>), this.sub(n.right as AVLNode<K,V>)) + 1;
     if (n.height !== oldHeight) {
       if(onStep) await onStep({type: 'update-height', key: n.key, height: n.height});
-      if (Math.abs(this.sub(n.left as AVLNode<K,V>) - this.sub(n.right as AVLNode<K,V>)) < 2) {
-        await this.removeFix(n.parent as AVLNode<K,V> | null, onStep);
-      }
+      // Continue fixing up the tree
+      await this.removeFix(n.parent as AVLNode<K,V> | null, onStep);
     }
   }
 

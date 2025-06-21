@@ -2,7 +2,6 @@ import { BinarySearchTree, Node } from "./bst";
 
 export class SplayTree<K, V> extends BinarySearchTree<K, V> {
   async insert(key: K, value: V, onStep?: (step: any) => Promise<void>) {
-    // This logic is a direct port of the C++ SplayTree::insert
     const newNode = new Node(key, value, null);
     if (this.root === null) {
       this.root = newNode;
@@ -16,7 +15,7 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
       if (key === currentNode.key) {
         currentNode.value = value;
         await onStep?.({ type: "update-value", key });
-        await this.splay(currentNode, onStep); // Splay the updated node
+        await this.splay(currentNode, onStep);
         return;
       } else if (key < currentNode.key) {
         if (currentNode.left === null) {
@@ -41,8 +40,6 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
   }
 
   async remove(key: K, onStep?: (step: any) => Promise<void>) {
-    // This logic is a direct port of the C++ SplayTree::remove.
-    // First, find the node without splaying.
     const nodeToRemove = this.internalFind(key);
     if (nodeToRemove === null) {
       await onStep?.({ type: "not-found", key });
@@ -72,14 +69,31 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
   }
 
   async find(key: K, onStep?: (step: any) => Promise<void>) {
-    const node = this.internalFind(key);
-    if (node) {
-      await onStep?.({type: 'found', key});
-      await this.splay(node, onStep);
-    } else {
-       await onStep?.({type: 'not-found', key});
+    if (this.root === null) {
+      await onStep?.({type: 'not-found', key});
+      return null;
     }
-    return node;
+
+    let currentNode: Node<K, V> | null = this.root;
+    let lastAccessed: Node<K, V> = this.root;
+
+    while (currentNode !== null) {
+      await onStep?.({ type: "visit", key: currentNode.key });
+      lastAccessed = currentNode;
+      
+      if (key === currentNode.key) {
+        await onStep?.({type: 'found', key});
+        await this.splay(currentNode, onStep);
+        return currentNode;
+      } else if (key < currentNode.key) {
+        currentNode = currentNode.left;
+      } else {
+        currentNode = currentNode.right;
+      }
+    }
+    await onStep?.({type: 'not-found', key});
+    await this.splay(lastAccessed, onStep);
+    return null;
   }
 
   async findMin(onStep?: (step: any) => Promise<void>) {
@@ -108,7 +122,6 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
       const p: Node<K, V> = n.parent;
       const g = p.parent;
       if (g === null) {
-        // Zig
         if (n === p.left) {
           await this.rightRotate(p, onStep);
         } else {
@@ -117,21 +130,17 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
       } else {
         if (n === p.left) {
           if (p === g.left) {
-            // Zig-Zig
             await this.rightRotate(g, onStep);
             await this.rightRotate(p, onStep);
           } else {
-            // Zig-Zag
             await this.rightRotate(p, onStep);
             await this.leftRotate(g, onStep);
           }
         } else {
           if (p === g.right) {
-            // Zig-Zig
             await this.leftRotate(g, onStep);
             await this.leftRotate(p, onStep);
           } else {
-            // Zig-Zag
             await this.leftRotate(p, onStep);
             await this.rightRotate(g, onStep);
           }
@@ -183,3 +192,4 @@ export class SplayTree<K, V> extends BinarySearchTree<K, V> {
     }
   }
 } 
+

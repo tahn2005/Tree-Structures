@@ -305,8 +305,6 @@ export class BinarySearchTree<K, V> {
     }
 
     const cloneRecursive = (node: Node<K, V>): Node<K, V> => {
-      // Use the node's own clone method. This is polymorphic and will use
-      // AVLNode.clone() for AVL trees, preserving node-specific properties.
       const newNode = node.clone();
       
       if (node.left) {
