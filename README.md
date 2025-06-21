@@ -21,7 +21,7 @@ Located in the `c++/` directory, these are production-ready implementations that
 - `splay.h` - Splay Tree implementation
 
 ### 🖥️ Interactive Web GUI
-[Link](https://cpp-data-structures.vercel.app)
+[Link](https://tree-structures.vercel.app/)
 A React-based visualization tool that provides:
 
 - **Real-time tree visualization** with SVG rendering
