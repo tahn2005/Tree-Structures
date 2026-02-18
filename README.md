@@ -8,12 +8,12 @@ This project was inspired a data structures class, going beyond the scope of the
 
 ## Features
 
-### 🌳 Tree Data Structures
+### Tree Data Structures
 - **Binary Search Tree (BST)** - Standard binary search tree implementation
 - **AVL Tree** - Self-balancing binary search tree with height balancing
 - **Splay Tree** - Self-adjusting binary search tree with amortized performance
 
-### 🎯 C++ Implementations
+### C++ Implementations
 Located in the `c++/` directory, these are production-ready implementations that can be used by other developers for their own projects:
 
 - `bst.h` - Binary Search Tree implementation
